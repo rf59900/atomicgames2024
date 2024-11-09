@@ -27,16 +27,13 @@ else:
 class NetworkHandler(ss.StreamRequestHandler):
     def handle(self):
         game = Game()
-
-    
-
+        
         count = 0
-
         while True:
-
             data = self.rfile.readline().decode()  # reads until '\n' encountered
             if not data.strip():  # skip empty lines
                 continue
+
             try:
                 json_data = json.loads(str(data))
             except Exception as e:
@@ -44,9 +41,7 @@ class NetworkHandler(ss.StreamRequestHandler):
 
             if count == 0:
                 game.initialize_map(json_data)
-                    
 
-        
             response = game.get_random_move(json_data).encode()
             self.wfile.write(response)
 
