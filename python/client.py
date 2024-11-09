@@ -44,8 +44,11 @@ class NetworkHandler(ss.StreamRequestHandler):
                 print(list(filter(lambda x: x["type"] == "base", json_data['unit_updates'])))
                 
             for tile in json_data['tile_updates']:
-                x_cord = tile['x']
-                y_cord = tile['y']
+                x_cord = tile['x'] + game.map_dimensions[0]
+                y_cord = tile['y'] + game.map_dimensions[1]
+
+               ## print(x_cord)
+               ## print(y_cord)
 
                 tile_info = { "visible": tile["visible"], "blocked": tile["blocked"], "resources": tile["resources"], "units": tile["units"] }
 
@@ -67,6 +70,7 @@ class Game:
         self.units = set() # set of unique unit ids
         self.directions = ['N', 'S', 'E', 'W']
         self.map = None
+        self.map_dimensions = None
 
     def get_map_size(self, json_data):
         width = json_data["game_info"]["map_width"]
@@ -76,14 +80,18 @@ class Game:
 
     def initialize_map(self, json_data):
         map_dimensions = self.get_map_size(json_data)
-        print("~~~~~~~~~~~~~~~~~~!!!!!!!!!!!!!!!!!!!!!!!!!!!~~~~~~~~~~~~~~~~~~~~~")
+        print("~~~~!!!!!!!!!!!!!!!!!!!!!!!!!!!~~~~~~~")
         print(map_dimensions)
-        two_dee_map = ([0] * map_dimensions[0] * 2)
-        two_dee_map = [[0]*map_dimensions[0]]*map_dimensions[1] * 2
-        base_location = map_dimensions
 
-        print(two_dee_map) # Print 2D Array
+        # Get the width and height from map_dimensions
+        width, height = map_dimensions
 
+        self.map_dimensions = map_dimensions
+
+        # Create a 2D list with twice the width and height
+        two_dee_map = [[0] * (width * 2) for _ in range(height * 2)]  # Double the width and height
+
+        print("Initialized Map:", two_dee_map)
         self.map = two_dee_map
 
     def get_random_move(self, json_data):
