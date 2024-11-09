@@ -27,6 +27,9 @@ else:
 class NetworkHandler(ss.StreamRequestHandler):
     def handle(self):
         game = Game()
+        response = []
+        startup_scouts = 0
+        scouts_set = set()
         
         count = 0
         while True:
@@ -41,29 +44,48 @@ class NetworkHandler(ss.StreamRequestHandler):
 
             if count == 0:
                 game.initialize_map(json_data)
-                print(list(filter(lambda x: x["type"] == "base", json_data['unit_updates'])))
-                
+                #print(list(filter(lambda x: x["type"] == "base", json_data['unit_updates'])))
+
+            if (count % 10 == 0) and (startup_scouts != 4):
+                server_command = game.buy_scout().encode()
+                self.wfile.write(server_command)
+                startup_scouts += 1
+                #scouts_set.add(set(filter(lambda x: x['type'] == 'scout', json_data['unit_updates'])))
+
+
             for tile in json_data['tile_updates']:
                 x_cord = tile['x'] + game.map_dimensions[0]
                 y_cord = tile['y'] + game.map_dimensions[1]
 
-               ## print(x_cord)
-               ## print(y_cord)
+                ##tile_info = { "visible": tile["visible"], "blocked": tile["blocked"], "resources": tile["resources"], "units": tile["units"] }
 
-                tile_info = { "visible": tile["visible"], "blocked": tile["blocked"], "resources": tile["resources"], "units": tile["units"] }
+                # ourUnitAtTile = filter(lambda unit: unit["x"] + game.map_dimensions[0] == x_cord and unit["y"] + game.map_dimensions[1] == y_cord, json_data["unit_updates"])
+                # tile_info["units"].append(list(ourUnitAtTile))
+                # if (game.map[x_cord][y_cord] != tile_info):
+                #     game.map[x_cord][y_cord] = tile_info
 
-                ourUnitAtTile = filter(lambda unit: unit["x"] + game.map_dimensions[0] == x_cord and unit["y"] + game.map_dimensions[1] == y_cord, json_data["unit_updates"])
-                ##print(json_data["unit_updates"])
-                ##print(list(ourUnitAtTile))
-                tile_info["units"].append(list(ourUnitAtTile))
-                if (game.map[x_cord][y_cord] != tile_info):
-                    game.map[x_cord][y_cord] = tile_info
-               
-            response = game.get_random_move(json_data).encode()
-            self.wfile.write(response)
-           
-            print(game.map)
-            count += 1        
+
+            for unit in json_data['unit_updates']:
+                if unit['type'] == 'scout' and unit['id'] not in scouts_set:
+                    scouts_set.add(unit['id'])
+
+            if count > 40:
+                unit = random.choice(tuple(scouts_set))
+                direction = 'E'
+                move = 'MOVE'
+                command = {"commands": [{"command": move, "unit": unit, "dir": direction}]}
+                server_message = (json.dumps(command, separators=(',',':')) + '\n').encode()
+                self.wfile.write(server_message)
+
+                
+            count += 1
+            print(json_data["unit_updates"])
+
+
+
+            
+
+            
 
 class Game:
     def __init__(self):
@@ -102,11 +124,24 @@ class Game:
         direction = 'E'
         move = 'MOVE'
         command = {"commands": [{"command": move, "unit": unit, "dir": direction}]}
-        response = json.dumps(command, separators=(',',':')) + '\n'
-       ## print(json_data["unit_updates"])
-        #self.update_tiles(json_data, two_dee_map)
+        server_message = json.dumps(command, separators=(',',':')) + '\n'
 
-        return response
+
+        return server_message
+    
+
+    def buy_scout(self):
+        # Buy 4 drones and send them on main diagonals
+        #units = set([unit['id'] for unit in json_data['unit_updates'] if unit['type'] != 'base'])
+
+        command = {"commands": [{"command": 'CREATE', "type": 'scout'}]}
+        server_message = json.dumps(command, separators=(',',':')) + '\n'
+        print(server_message)
+
+        return server_message
+
+
+
 
 if __name__ == "__main__":
     port = int(sys.argv[1]) if (len(sys.argv) > 1 and sys.argv[1]) else 9090
