@@ -42,6 +42,17 @@ class NetworkHandler(ss.StreamRequestHandler):
             if count == 0:
                 game.initialize_map(json_data)
 
+            for tile in json_data['tile_updates']:
+                x_cord = tile['x']
+                y_cord = tile['y']
+
+                tile_info = { "visible": tile["visible"], "blocked": tile["blocked"], "resources": tile["resources"], "units": tile["resources"] }
+
+                if (game.map[x_cord][y_cord] != tile_info):
+                    game.map[x_cord][y_cord] = tile_info
+                    print(game.map[0])
+                
+               
             response = game.get_random_move(json_data).encode()
             self.wfile.write(response)
 
@@ -51,7 +62,7 @@ class Game:
     def __init__(self):
         self.units = set() # set of unique unit ids
         self.directions = ['N', 'S', 'E', 'W']
-
+        self.map = None
 
     def get_map_size(self, json_data):
         width = json_data["game_info"]["map_width"]
@@ -67,7 +78,7 @@ class Game:
         two_dee_map = [[0]*map_dimensions[0]]*map_dimensions[1]
         print(two_dee_map) # Print 2D Array
 
-        return
+        self.map = two_dee_map
 
     def get_random_move(self, json_data):
         #two_dee_map = self.initialize_map(json_data)
