@@ -52,17 +52,17 @@ class NetworkHandler(ss.StreamRequestHandler):
 
                 tile_info = { "visible": tile["visible"], "blocked": tile["blocked"], "resources": tile["resources"], "units": tile["units"] }
 
-                ourUnitAtTile = filter(lambda unit: unit["x"] == x_cord and unit["y"] == y_cord, json_data["unit_updates"])
-                
-                tile_info["units"] += list(ourUnitAtTile)
-
+                ourUnitAtTile = filter(lambda unit: unit["x"] + game.map_dimensions[0] == x_cord and unit["y"] + game.map_dimensions[1] == y_cord, json_data["unit_updates"])
+                ##print(json_data["unit_updates"])
+                ##print(list(ourUnitAtTile))
+                tile_info["units"].append(list(ourUnitAtTile))
                 if (game.map[x_cord][y_cord] != tile_info):
                     game.map[x_cord][y_cord] = tile_info
                
             response = game.get_random_move(json_data).encode()
             self.wfile.write(response)
            
-    
+            print(game.map)
             count += 1        
 
 class Game:
