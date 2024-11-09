@@ -41,21 +41,28 @@ class NetworkHandler(ss.StreamRequestHandler):
 
             if count == 0:
                 game.initialize_map(json_data)
-
+                print(list(filter(lambda x: x["type"] == "base", json_data['unit_updates'])))
+                
             for tile in json_data['tile_updates']:
-                x_cord = tile['x']
+                x_cord = tile['x'] + game.map[0][0]
                 y_cord = tile['y']
 
-                tile_info = { "visible": tile["visible"], "blocked": tile["blocked"], "resources": tile["resources"], "units": tile["resources"] }
+                tile_info = { "visible": tile["visible"], "blocked": tile["blocked"], "resources": tile["resources"], "units": tile["units"] }
+
+                ourUnitAtTile = filter(lambda unit: unit["x"] == x_cord and unit["y"] == y_cord, json_data["unit_updates"])
+                
+                tile_info["units"] += list(ourUnitAtTile)
 
                 if (game.map[x_cord][y_cord] != tile_info):
                     game.map[x_cord][y_cord] = tile_info
-                    print(game.map[0])
+
+           
                 
                
             response = game.get_random_move(json_data).encode()
             self.wfile.write(response)
-
+           
+    
             count += 1        
 
 class Game:
@@ -89,7 +96,7 @@ class Game:
         move = 'MOVE'
         command = {"commands": [{"command": move, "unit": unit, "dir": direction}]}
         response = json.dumps(command, separators=(',',':')) + '\n'
-        print(json_data["unit_updates"])
+       ## print(json_data["unit_updates"])
         #self.update_tiles(json_data, two_dee_map)
 
         return response
