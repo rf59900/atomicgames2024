@@ -20,7 +20,7 @@ class NetworkHandler(ss.StreamRequestHandler):
             data = self.rfile.readline().decode() # reads until '\n' encountered
             json_data = json.loads(str(data))
             # uncomment the following line to see pretty-printed data
-            # print(json.dumps(json_data, indent=4, sort_keys=True))
+            print(json.dumps(json_data, indent=4, sort_keys=True))
             response = game.get_random_move(json_data).encode()
             self.wfile.write(response)
 
@@ -31,14 +31,38 @@ class Game:
         self.units = set() # set of unique unit ids
         self.directions = ['N', 'S', 'E', 'W']
 
+
+    def update_tiles(self, json_data, previous_map_state):
+        
+
+        return
+
+
+    def get_map_size(self, json_data):
+        return (json_data["game_info"]["map_width"], json_data["game_info"]["map_height"])
+
+    def initialize_map(self, json_data):
+        map_dimensions = self.get_map_size(json_data)
+        print("~~~~~~~~~~~~~~~~~~!!!!!!!!!!!!!!!!!!!!!!!!!!!~~~~~~~~~~~~~~~~~~~~~")
+        print(map_dimensions)
+        two_dee_map = ([0] * map_dimensions[0])
+        two_dee_map = [[0]*map_dimensions[0]]*map_dimensions[1]
+        print(two_dee_map) # Print 2D Array
+        
+
+
     def get_random_move(self, json_data):
         units = set([unit['id'] for unit in json_data['unit_updates'] if unit['type'] != 'base'])
         self.units |= units # add any additional ids we encounter
         unit = random.choice(tuple(self.units))
-        direction = random.choice(self.directions)
+        direction = 'E'
         move = 'MOVE'
         command = {"commands": [{"command": move, "unit": unit, "dir": direction}]}
         response = json.dumps(command, separators=(',',':')) + '\n'
+        print(json_data["unit_updates"])
+        self.initialize_map(json_data)
+
+
         return response
 
 if __name__ == "__main__":
