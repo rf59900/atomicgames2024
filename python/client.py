@@ -44,7 +44,7 @@ class NetworkHandler(ss.StreamRequestHandler):
                 print(list(filter(lambda x: x["type"] == "base", json_data['unit_updates'])))
                 
             for tile in json_data['tile_updates']:
-                x_cord = tile['x'] + game.map[0][0]
+                x_cord = tile['x']
                 y_cord = tile['y']
 
                 tile_info = { "visible": tile["visible"], "blocked": tile["blocked"], "resources": tile["resources"], "units": tile["units"] }
@@ -55,9 +55,6 @@ class NetworkHandler(ss.StreamRequestHandler):
 
                 if (game.map[x_cord][y_cord] != tile_info):
                     game.map[x_cord][y_cord] = tile_info
-
-           
-                
                
             response = game.get_random_move(json_data).encode()
             self.wfile.write(response)
@@ -81,8 +78,10 @@ class Game:
         map_dimensions = self.get_map_size(json_data)
         print("~~~~~~~~~~~~~~~~~~!!!!!!!!!!!!!!!!!!!!!!!!!!!~~~~~~~~~~~~~~~~~~~~~")
         print(map_dimensions)
-        two_dee_map = ([0] * map_dimensions[0])
-        two_dee_map = [[0]*map_dimensions[0]]*map_dimensions[1]
+        two_dee_map = ([0] * map_dimensions[0] * 2)
+        two_dee_map = [[0]*map_dimensions[0]]*map_dimensions[1] * 2
+        base_location = map_dimensions
+
         print(two_dee_map) # Print 2D Array
 
         self.map = two_dee_map
